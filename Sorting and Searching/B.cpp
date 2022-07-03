@@ -5,34 +5,35 @@
 #include <algorithm>
 using namespace std;
 
-/*
-cd Documents/Github/Competitive-Programming/'Sorting and Searching'
-g++ B.cpp -std=c++17
-*/
-
 int a[200005], b[200005], n, m, k, ret, i, j;
 
-int main(){
+int main()
+{
 	ios_base::sync_with_stdio(false);
 	cin.tie(NULL);
 	cout.tie(NULL);
 
 	cin >> n >> m >> k;
-	for(int i = 0; i < n; i++)
+	for (int i = 0; i < n; i++)
 		cin >> a[i];
-	for(int i = 0; i < m; i++) 
+	for (int i = 0; i < m; i++)
 		cin >> b[i];
-	
-	sort(a, a+n);
-	sort(b, b+m);
 
-	while(i < n && j < m){
-		if(a[i]-k <= b[j] && b[j] <= a[i]+k){
-			ret++; i++; j++;
+	sort(a, a + n);
+	sort(b, b + m);
+
+	while (i < n && j < m)
+	{
+		if (a[i] - k <= b[j] && b[j] <= a[i] + k)
+		{
+			ret++;
+			i++;
+			j++;
 			continue;
 		}
 
-		if(b[j] < a[i]-k){ 
+		if (b[j] < a[i] - k)
+		{
 			j++;
 			continue;
 		}
