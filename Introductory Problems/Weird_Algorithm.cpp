@@ -1,5 +1,5 @@
 // Alonso Huerta Escalante
-// Link: https://cses.fi/problemset/result/3460585/
+// Link: https://cses.fi/problemset/result/1068/
 
 #include <iostream>
 using namespace std;

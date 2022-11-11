@@ -1,5 +1,5 @@
 // Alonso Huerta Escalante
-// Link: https://cses.fi/problemset/result/3465700/
+// Link: https://cses.fi/problemset/result/2205/
 
 #include <iostream>
 #include <unordered_set>
