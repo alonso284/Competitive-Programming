@@ -36,28 +36,42 @@ int main(){
 	return 0;
 }
 
+#define lib pair < pair < long long, int >, bool >
 long long Dijkstra(){
-	priority_queue < pair < pair < long long, long long >, int > > dijk;
-	dijk.push(make_pair(make_pair(0,0), 1));
+	priority_queue < lib, vector<lib>, greater<lib> > dijk;
 
-	while(dijk.top().second != N){
-		pair < pair < long long, long long > , int > fr = dijk.top();
+	dijk.push(make_pair(make_pair(0,1), false));
+
+	vector< pair <bool , bool > > vis(N+1, {false, false});
+
+	while(dijk.top().first.second != N){
+		pair < pair < long long, int > , bool  > fr = dijk.top();
 		dijk.pop();
+		long long d = fr.first.first;
+		int u = fr.first.second;
+		bool used = fr.second;
 
-		// if(vis.count(make_pair(fr.second))) continue;
-		// vis[fr.second] = true;
-		// cout << "THE TOP IS " << fr.first.first << ' ' << fr.first.second << endl;
+		/* cout << u << ' ' << d << ' ' << std::boolalpha << used << endl; */
+		if(used){
+			if(vis[u].first) continue;
+			vis[u].first = true;
+		} else {
+			if(vis[u].second) continue;
+			vis[u].second = true;
+		}
+		for(auto& [v, w]:aristas[u]){
+			// si no lo haz vistado con el cupon usaod y el cupon no ha sido usado, usa el cupon
+			/* cout << u << " -> " << v << endl; */
+			if(vis[v].first == false && used == false) dijk.push({{d + w/2, v}, true});
 
-		long long maxPath = -fr.first.second;
-		long long actualPrize = -fr.first.first + maxPath/2 + maxPath%2;
-
-		// cout << "estoy en " << fr.second << " para llegar aqui desconte " << maxPath/2 + maxPath%2 << " pero el real cuesta " << actualPrize << " y " << -fr.first.first  <<  endl;
-		for(auto& it:aristas[fr.second]){
-			if(!vis.count(make_pair(fr.second, it.first)))
-				vis.insert(make_pair(fr.second, it.first));
-				// cout << "agregando " << it.first << " estando en " << fr.second << endl;  
-				dijk.push(make_pair(make_pair(-(actualPrize + it.second - max(maxPath, it.second)/2 - max(maxPath, it.second)%2), -max(maxPath, it.second)),it.first));
+			if(used){
+				if(vis[v].first) continue;
+				dijk.push({{d + w, v}, used});
+			} else {
+				if(vis[v].second) continue;
+				dijk.push({{d + w, v}, used});
+			}
 		}
 	}
-	return -dijk.top().first.first;
+	return dijk.top().first.first;
 }
