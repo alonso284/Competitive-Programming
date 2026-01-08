@@ -1,100 +1,62 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <bitset>
 #include <cstring>
 
 using namespace std;
 
-#define COM ((1<<n)-1)
-#define EMP 0
-map<int, vector<int> > transition;
+
+#define MAXM 1001
+#define MAXN 10
+const int64_t MOD = 1000000007;
 
 int n, m;
-void trans(int current, int bit, int next){
-	if(bit == n){
-		if(next == COM) return;
-		transition[current].push_back(next);
-		return;
-	}
-
-	if(current & (1<<bit)){
-		trans(current, bit+1, next);
-	}
-	else{
-		trans(current, bit+2, next | (1<<bit) | (1<<(bit+1)));
-		trans(current, bit+2, next);
-	}
-}
-
-void binary(int mask){
-	for(int i = 0; i < n; i++)
-		cout << (bool)(mask & (1<<i));
-	cout << endl;
-}
-
-
-long long dp[1<<10][1003];
-bool vis[1<<10][1003];
-int DP(int mask, int row){
-	/* if(row == m-1 && mask == COM) return 1; */
-	if(row == m && mask == EMP) return 1;
-	if(row >= m) return 0;
-
-	if(vis[mask][row]) return dp[mask][row];
-	vis[mask][row] = true;
-
-	if(mask == EMP){
-		dp[mask][row] = DP(EMP, row+2);
-		for(auto p: transition){
-			dp[mask][row] += DP(p.first, row+1);
-		}
-	} else {
-		dp[mask][row] = DP(EMP, row+1);
-		for(int i : transition[mask]){
-			dp[mask][row] += DP(i, row+2);
+bool poss(const bitset<MAXN> &a, const bitset<MAXN> &b){
+	for(int bit = 0; bit < n; bit++){
+		// if a == 1, then b == 0, then wrong
+		if(a[bit]){
+			if(b[bit]) return false;
+		} else {
+			// if a == 0, then b == 1 is possible
+			if(b[bit]) continue;
+			// if a == 0, and b == 0 is possible if bit+1 is 0 in both
+			if(bit+1 >= n || a[bit+1] || b[bit+1]) return false;
+			bit++;
 		}
 	}
+	return true;
+}
 
-	return dp[mask][row] %= 1000000007;
-
+int64_t dp[1<<MAXN][MAXM];
+bool vis[1<<MAXN][MAXM];
+vector<vector<int>> adj(1ll<<MAXN);
+int64_t DP(int mask, int left){
+	if(left == 0) return mask == 0;
+	
+	if(vis[mask][left]) return dp[mask][left];
+	vis[mask][left] = true;
+	int64_t &ans = dp[mask][left];
+	for(int const &next: adj[mask])
+		ans += DP(next, left-1), ans %= MOD;
+	return dp[mask][left];
 }
 
 int main(){
 
 	cin >> n >> m;
-
-	for(int i = 0; i < (1<<n)-1; i++){
-		int mask = i + (1<<n);
-		bool flag = true;
-		for(int bit = 0; bit < n; bit++){
-			if((mask & (1<<bit)) == 0){
-				bit++;
-				if((mask & (1<<bit))){
-					flag = false;
-					break;
-				}
-			}
-		}
-		if(flag){
-			transition[i] = vector<int>();
-			trans(i, 0, i);
+	for(int i = 0; i < (1ll<<n); i++)
+	{
+		bitset<MAXN> a(i);
+		for(int j = 0; j < (1ll<<n); j++)
+		{
+			bitset<MAXN> b(j);
+			if(!poss(a, b)) continue;
+			adj[i].push_back(j);
 		}
 	}
 
-	for(auto p : transition){
-		binary(p.first);
-		for(int i : p.second)
-			binary(i);
-		cout << endl;
-	}
-
-
-	/* for(int i = 0; i < (1<<n); i++){ */
-	/* 	for(int j = 0; j < (1<<m); j++){ */
-	/* 	} */
-	/* } */
-
-	cout << DP(0, 0) << endl;	
+	cout << DP(0, m) << endl;
 
 	return 0;
 }
