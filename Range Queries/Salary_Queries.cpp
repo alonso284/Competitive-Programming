@@ -11,15 +11,41 @@
 using namespace std;
 
 int n, q;
-int ar[200005], BIT[1000000];
-vector< pair<char, pair<long long, long long> > > queries;
-// set <int> usedValues;
-unordered_map<int, long long> newValues;
-vector<long> usedValues;
+int ar[200005];
+vector< pair<char, pair<int, int> > > queries;
+map<int, int> newValues;
+set<int> usedValues = {-1, 0, (int)1e9+1};
 
-void insert(int idx);
-void del(int idx);
-int querie(int r);
+struct FenwickTree {
+    vector<int> bit;  // binary indexed tree
+    int n;
+
+    FenwickTree(int n) {
+        this->n = n;
+        bit.assign(n, 0);
+    }
+
+    FenwickTree(vector<int> const &a) : FenwickTree(a.size()) {
+        for (size_t i = 0; i < a.size(); i++)
+            add(i, a[i]);
+    }
+
+    int sum(int r) {
+        int ret = 0;
+        for (; r >= 0; r = (r & (r + 1)) - 1)
+            ret += bit[r];
+        return ret;
+    }
+
+    int sum(int l, int r) {
+        return sum(r) - sum(l - 1);
+    }
+
+    void add(int idx, int delta) {
+        for (; idx < n; idx = idx | (idx + 1))
+            bit[idx] += delta;
+    }
+};
 
 int main(){
 
@@ -30,74 +56,53 @@ int main(){
 	cin >> n >> q;
 	for(int i = 1; i <= n; i++){
 		cin >> ar[i];
-		usedValues.push_back(ar[i]);
+		usedValues.insert(ar[i]);
 	}
 
-	int questions = 0;
 	while(q--){
 		char command; int a, b;
 		cin >> command >> a >> b;
-		queries.push_back(make_pair(command, make_pair(a, b)));
 		
 		switch(command){
-			case '?':
-				usedValues.push_back(a-1);
-				usedValues.push_back(a);
-				questions++;
 			case '!':
-				usedValues.push_back(b);
+				usedValues.insert(b);
+				break;
 		}
-	}
 
-	if(!questions) return 0;
-
-	usedValues.push_back(-1);
-	sort(usedValues.begin(), usedValues.end());
-
-	int p = 1;
-	for(int i = 1; i < (int)usedValues.size(); i++){
-		if(usedValues[i] != usedValues[i-1]) newValues[usedValues[i]] = p++;
-	}
-
-//	cout << endl;
-//	for(auto& it:newValues) cout << it.first << ' ' << it.second << endl;
-
-	for(int i = 1; i <= n; i++){
-		insert(newValues[ar[i]]);
+		queries.push_back(make_pair(command, make_pair(a, b)));
 	}
 
 	for(auto& q:queries){
-		switch(q.first){
-			case '?':
-				cout << querie(newValues[q.second.second]) - querie(newValues[q.second.first-1]) << ' ';
-				break;
-			case '!':
-				del(newValues[ar[q.second.first]]);
-				ar[q.second.first] = q.second.second;
-				insert(newValues[ar[q.second.first]]);
+		if(q.first == '?'){
+			auto ita = usedValues.lower_bound(q.second.first); ita--;
+			q.second.first = *ita;
+
+			auto itb = usedValues.upper_bound(q.second.second); itb--;
+			q.second.second = *itb;
 		}
 	}
 
-	
+	int p = 0;
+	for(const int &it: usedValues)
+		newValues[it] = p++;
+
+	FenwickTree ft(p);
+	for(int i = 1; i <= n; i++)
+		ft.add(newValues[ar[i]], +1);
+
+	for(const auto& q:queries){
+		switch(q.first){
+			case '?':
+				cout << ft.sum(newValues[q.second.second]) - ft.sum(newValues[q.second.first]) << '\n';
+				break;
+			case '!':
+				ft.add(newValues[ar[q.second.first]], -1);
+				ar[q.second.first] = q.second.second;
+				ft.add(newValues[ar[q.second.first]], +1);
+				break;
+		}
+	}
+	cout << endl;
 		
 	return 0;
-}
-
-void insert(int idx){
-	for (; idx <= (int)newValues.size(); idx = idx | (idx + 1))
-            BIT[idx] ++;
-}
-
-int querie(int r){
-	if(r == 0) return 0;
-	int ret = 0;
-       for (; r >= 0; r = (r & (r + 1)) - 1)
-           ret += BIT[r];
-//	 cout << ret << endl;
-    return ret;
-}
-
-void del(int idx){
-    for (; idx <= (int)newValues.size(); idx = idx | (idx + 1))
- BIT[idx]--;
 }
